@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'data.dart';
+
 void main() {runApp(MyApp());}
 
 class MyApp extends StatelessWidget {
@@ -23,10 +25,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-
   final PageController _pageController = PageController();
   double _currentPage = 0;
-
 
   @override
   void initState() {
@@ -34,10 +34,6 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() => _currentPage = _pageController.page);
     });
     super.initState();
-  }
-
-  Widget _pageViewChildImage(String imageString) {
-    return Image.asset(imageString,fit: BoxFit.fitWidth,);
   }
 
   Widget _pageViewIndicator(int location) {
@@ -59,20 +55,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Programming Section',style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold),),
-            ),
+            _sectionSubjectTitle('Programming Section'),
             Padding(
               padding: const EdgeInsets.fromLTRB(12.0,6,12,12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _programSectionRowItem('flutter_logo.png', 'Flutter','Cross',size),
-                  _programSectionRowItem('ios_logo.png', 'iOS','Swift',size),
-                  _programSectionRowItem('android_logo.png', 'Android','Kotlin',size),
-                  _programSectionRowItem('diary_logo.png', 'ETC','Diary',size),
-                ],
+                children: programmingSection.map((data) => _programSectionRowItem(data.imageName,data.title,data.subTitle,size)).toList()
               ),
             ),
             Container(
@@ -80,39 +68,24 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 210,
               child: PageView(
                 controller: _pageController,
-                children: [
-                  Image.asset('images/Feature1.png',fit: BoxFit.fitWidth,),
-                  Image.asset('images/Feature2.png',fit: BoxFit.fitWidth,),
-                  Image.asset('images/Feature3.png',fit: BoxFit.fitWidth,),
-                ],
+                children: List<Widget>.generate(3,(index) => _featureItem('images/Feature${index+1}.png')).toList(),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(14.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  _pageViewIndicator(1),
-                  _pageViewIndicator(2),
-                  _pageViewIndicator(3),
-                ],
+                children:
+                List<Widget>.generate(3,(index) => _pageViewIndicator(index+1)).toList(),
               ),
             ),
             Divider(color: Colors.grey[800],height: 6,),
-
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Popular Materials',style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold),),
-            ),
+            _sectionSubjectTitle('Popular Materials'),
             Container(
               height: 200,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                children: [
-                  _popularMaterialsItem('Feature1.png', 'Flutter','Cross'),
-                  _popularMaterialsItem('Feature2.png', 'iOS','Swift'),
-                  _popularMaterialsItem('Feature3.png', 'Android','Kotlin')
-                ],
+                children: popularMaterialsHorizontalList.map((data) => _popularMaterialsItem(data.imageName,data.title,data.subTitle)).toList()
               ),
             ),
             _normalListItem('flutter_logo.png','Flutter','it is awesome',size),
@@ -123,6 +96,17 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _featureItem(String imageName){
+    return Image.asset(imageName,fit: BoxFit.fitWidth,);
+  }
+
+  Widget _sectionSubjectTitle(String subjectText){
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(subjectText,style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold),),
     );
   }
 
