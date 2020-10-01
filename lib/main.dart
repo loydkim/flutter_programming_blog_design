@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'package:url_launcher/url_launcher.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'dart:async';
 import 'data.dart';
 
 void main() {runApp(MyApp());}
@@ -28,19 +30,44 @@ class _MyHomePageState extends State<MyHomePage> {
   final PageController _pageController = PageController();
   double _currentPage = 0;
 
+  Timer _timer;
+  int _start = 4;
+
   @override
   void initState() {
+    _startTimer();
     _pageController.addListener((){
+      _timer.cancel();
+      _start = 4;
+      _startTimer();
       setState(() => _currentPage = _pageController.page);
     });
     super.initState();
   }
 
-  Widget _pageViewIndicator(int location) {
-    return Padding(
-      padding: const EdgeInsets.only(right:6.0,left:6),
-      child: Icon(Icons.lens,size: 14,color: location - 1 <= _currentPage&& _currentPage < location ? Colors.blue[900] : Colors.grey[600]),
-    );
+  void _startTimer() {
+    _timer = new Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      setState(() {
+        if (_start < 1) {
+          timer.cancel();
+          _pageController.animateToPage(_pageController.page == 2.0 ? 0 : _pageController.page.toInt()+1, duration: Duration(seconds:1), curve: Curves.ease);
+          _start = 4;
+          _startTimer();
+        } else {
+          _start = _start - 1;
+          print('current time is $_start');
+        }
+      });
+    });
+  }
+
+  void _launchURL(String urlAddress) async {
+    const url = 'https://flutter.dev';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   @override
@@ -71,12 +98,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: List<Widget>.generate(3,(index) => _featureItem('images/Feature${index+1}.png')).toList(),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children:
-                List<Widget>.generate(3,(index) => _pageViewIndicator(index+1)).toList(),
+
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Container(
+                  child: SmoothPageIndicator(
+                    controller: _pageController,
+                    count: 3,
+                    effect: ExpandingDotsEffect(
+                      expansionFactor: 4,
+
+                    ),
+                  ),
+                ),
               ),
             ),
             Divider(color: Colors.grey[800],height: 6,),
@@ -88,20 +123,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: popularMaterialsHorizontalList.map((data) => _popularMaterialsItem(data.imageName,data.title,data.subTitle)).toList()
               ),
             ),
-            _normalListItem('flutter_logo.png','Flutter','it is awesome',size),
-            _normalListItem('ios_logo.png','iOS','anvakjsdnvafjkshdvfahsduhfundviunivnsuadfvasndhvfahsudhfasdhfuvasv',size),
-            _normalListItem('android_logo.png','Android','it is awesome',size),
-            _normalListItem('diary_logo.png','Diary','it is awesome',size),
-            _normalListItem('flutter_logo.png','Flutter','it is awesome',size),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: normalMaterialsList.map((data) => _normalListItem(data.imageName,data.title,data.subTitle,size)).toList()
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _featureItem(String imageName){
-    return Image.asset(imageName,fit: BoxFit.fitWidth,);
-  }
+  Widget _featureItem(String imageName) => Image.asset(imageName,fit: BoxFit.fitWidth);
 
   Widget _sectionSubjectTitle(String subjectText){
     return Padding(
@@ -118,12 +150,12 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Row(
           children: [
             Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: EdgeInsets.fromLTRB(8.0,8,12,8),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
                 child: Container(
-                    width: 50,
-                    height: 50,
+                    width: 40,
+                    height: 40,
                     child: Image.asset('images/$imageName')
                 ),
               ),
@@ -131,10 +163,13 @@ class _MyHomePageState extends State<MyHomePage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                Padding(
+                  padding: const EdgeInsets.only(bottom:4.0,top:4.0),
+                  child: Text(title,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                ),
                 Container(
                   width: size.width - 90,
-                  child: Text(subTitle,style: TextStyle(fontSize: 14,color:Colors.grey[800]),maxLines: 2,)
+                  child: Text(subTitle,style: TextStyle(fontSize: 14,color:Colors.grey[800]),maxLines: 1,)
                 ),
               ],
             ),
@@ -161,9 +196,12 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(0,8.0,4,4),
-            child: Text(title,style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),),
+            child: Text(title,style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.teal[800]),),
           ),
-          Text(subTitle),
+          Container(
+            width: 220,
+            child: Text(subTitle,style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold,color:Colors.black),maxLines: 1,)
+          ),
         ],
       ),
     );
@@ -171,12 +209,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _programSectionRowItem(String imageName, String title,String subTitle,Size size){
     return Card(
-        elevation:2.0,
+        elevation:1.0,
         child: Padding(
           padding: const EdgeInsets.all(6.0),
           child: Column(
             children: [
-              // Icon(itemIcon,size:28),
               Padding(
                 padding: EdgeInsets.all(imageName == 'flutter_logo.png' ? 12 : 8.0),
                 child: Container(
@@ -186,10 +223,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               Text(title,style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),),
-              Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Text(subTitle),
-              ),
             ],
           ),
         )
