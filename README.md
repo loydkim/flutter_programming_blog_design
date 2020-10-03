@@ -1,6 +1,6 @@
 # flutter blog UI
 
-<img src="https://github.com/loydkim/flutter_programming_blog_design/blob/master/programmingUIPromogif.gif" width="320" height="560">
+<img src="https://github.com/loydkim/flutter_programming_blog_design/blob/master/programmingUIPromogif.gif" width="340" height="560">
 
 * Project features
 - Automatically change page view
