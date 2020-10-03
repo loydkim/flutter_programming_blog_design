@@ -28,45 +28,42 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   final PageController _pageController = PageController();
-  double _currentPage = 0;
 
   Timer _timer;
-  int _start = 4;
+  int _start;
 
   @override
   void initState() {
     _startTimer();
     _pageController.addListener((){
       _timer.cancel();
-      _start = 4;
       _startTimer();
-      setState(() => _currentPage = _pageController.page);
     });
     super.initState();
   }
 
   void _startTimer() {
+    _start = 4;
     _timer = new Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      setState(() {
+      // setState(() {
         if (_start < 1) {
           timer.cancel();
+          print('move to next feature and reStart');
           _pageController.animateToPage(_pageController.page == 2.0 ? 0 : _pageController.page.toInt()+1, duration: Duration(seconds:1), curve: Curves.ease);
-          _start = 4;
           _startTimer();
         } else {
           _start = _start - 1;
           print('current time is $_start');
         }
-      });
+      // });
     });
   }
 
   void _launchURL(String urlAddress) async {
-    const url = 'https://flutter.dev';
-    if (await canLaunch(url)) {
-      await launch(url);
+    if (await canLaunch(urlAddress)) {
+      await launch(urlAddress);
     } else {
-      throw 'Could not launch $url';
+      throw 'Could not launch $urlAddress';
     }
   }
 
@@ -84,10 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             _sectionSubjectTitle('Programming Section'),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12.0,6,12,12),
+              padding: const EdgeInsets.fromLTRB(6.0,6,6,12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: programmingSection.map((data) => _programSectionRowItem(data.imageName,data.title,data.subTitle,size)).toList()
+                children: programmingSection.map((data) => _programSectionRowItem(data,size)).toList()
               ),
             ),
             Container(
@@ -95,7 +92,8 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 210,
               child: PageView(
                 controller: _pageController,
-                children: List<Widget>.generate(3,(index) => _featureItem('images/Feature${index+1}.png')).toList(),
+                children: featureSection.map(_featureItem).toList(),
+                //List<Widget>.generate(3,(index) => _featureItem('images/Feature${index+1}.png')).toList(),
               ),
             ),
 
@@ -106,10 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: SmoothPageIndicator(
                     controller: _pageController,
                     count: 3,
-                    effect: ExpandingDotsEffect(
-                      expansionFactor: 4,
-
-                    ),
+                    effect: ExpandingDotsEffect(expansionFactor: 4,),
                   ),
                 ),
               ),
@@ -120,12 +115,12 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 200,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                children: popularMaterialsHorizontalList.map((data) => _popularMaterialsItem(data.imageName,data.title,data.subTitle)).toList()
+                children: popularMaterialsHorizontalList.map(_popularMaterialsItem).toList()
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: normalMaterialsList.map((data) => _normalListItem(data.imageName,data.title,data.subTitle,size)).toList()
+              children: normalMaterialsList.map((data) => _normalListItem(data,size)).toList()
             ),
           ],
         ),
@@ -133,7 +128,12 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _featureItem(String imageName) => Image.asset(imageName,fit: BoxFit.fitWidth);
+  Widget _featureItem(ProgrammingSection data) {
+    return GestureDetector(
+      onTap: () => _launchURL(data.url),
+      child: Image.asset('images/${data.imageName}',fit: BoxFit.fitWidth)
+    );
+  }
 
   Widget _sectionSubjectTitle(String subjectText){
     return Padding(
@@ -142,36 +142,70 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _normalListItem(String imageName,String title,String subTitle,Size size){
-    return Card(
-      elevation:2.0,
-      child: Padding(
-      padding: const EdgeInsets.all(6.0),
-        child: Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(8.0,8,12,8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: Container(
-                    width: 40,
-                    height: 40,
-                    child: Image.asset('images/$imageName')
+  Widget _normalListItem(ProgrammingSection data,Size size){
+    return GestureDetector(
+      onTap: () =>_launchURL(data.url),
+      child: Card(
+        elevation:2.0,
+        child: Padding(
+        padding: const EdgeInsets.all(6.0),
+          child: Row(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(8.0,8,12,8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Container(
+                      width: 40,
+                      height: 40,
+                      child: Image.asset('images/${data.imageName}')
+                  ),
                 ),
               ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom:4.0,top:4.0),
+                    child: Text(data.title,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                  ),
+                  Container(
+                    width: size.width - 90,
+                    child: Text(data.subTitle,style: TextStyle(fontSize: 14,color:Colors.grey[800]),maxLines: 1,)
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _popularMaterialsItem(ProgrammingSection data){
+    return GestureDetector(
+      onTap: () =>_launchURL(data.url),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon(itemIcon,size:28),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Container(
+                width: 220,
+                height: 120,
+                child: Image.asset('images/${data.imageName}',fit: BoxFit.fitWidth)
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom:4.0,top:4.0),
-                  child: Text(title,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-                ),
-                Container(
-                  width: size.width - 90,
-                  child: Text(subTitle,style: TextStyle(fontSize: 14,color:Colors.grey[800]),maxLines: 1,)
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0,8.0,4,4),
+              child: Text(data.title,style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.teal[800]),),
+            ),
+            Container(
+              width: 220,
+              child: Text(data.subTitle,style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold,color:Colors.black),maxLines: 1,)
             ),
           ],
         ),
@@ -179,51 +213,33 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _popularMaterialsItem(String imageName, String title,String subTitle){
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon(itemIcon,size:28),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Container(
-              width: 220,
-              height: 120,
-              child: Image.asset('images/$imageName',fit: BoxFit.fitWidth)
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0,8.0,4,4),
-            child: Text(title,style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold,color: Colors.teal[800]),),
-          ),
-          Container(
-            width: 220,
-            child: Text(subTitle,style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold,color:Colors.black),maxLines: 1,)
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _programSectionRowItem(String imageName, String title,String subTitle,Size size){
-    return Card(
+  Widget _programSectionRowItem(ProgrammingSection data,Size size){
+    return RaisedButton(
+        onPressed: (){},
         elevation:1.0,
-        child: Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.all(imageName == 'flutter_logo.png' ? 12 : 8.0),
-                child: Container(
-                  width: imageName == 'flutter_logo.png' ? 54 : 60,
-                  height: imageName == 'flutter_logo.png' ? 54 : 60,
-                  child: Image.asset('images/$imageName')
+        color: Colors.white,
+        highlightColor: data.highlightColor,
+        highlightElevation: 12,
+        child: Container(
+          width: size.width / 4 - 8 * 5,
+          child: Padding(
+            padding: const EdgeInsets.all(0.0),
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(data.imageName == 'flutter_logo.png' ? 12 : 8.0),
+                  child: Container(
+                    width: data.imageName == 'flutter_logo.png' ? 54 : 60,
+                    height: data.imageName == 'flutter_logo.png' ? 54 : 60,
+                    child: Image.asset('images/${data.imageName}')
+                  ),
                 ),
-              ),
-              Text(title,style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),),
-            ],
+                Padding(
+                  padding: const EdgeInsets.only(top:2.0,bottom:6.0),
+                  child: Text(data.title,style: TextStyle(fontSize: size.width * 0.035,fontWeight: FontWeight.bold,color: Colors.black),maxLines: 1,),
+                ),
+              ],
+            ),
           ),
         )
     );
